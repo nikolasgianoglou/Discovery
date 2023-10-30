@@ -47,17 +47,39 @@ struct DiscoveryCategoriesView: View {
     }
 }
 
+struct Place: Decodable {
+    let id: Int
+    let name, thumbnail: String
+}
+
 class CategoryDetailsViewModel: ObservableObject {
     @Published var isLoading = true
-    @Published var places = [Int]()
+    @Published var places = [Place]()
+    @Published var errorMessage = ""
     
     init() {
-//        isLoading = true
+        // real network
+        guard let url = URL(string: "https://travel.letsbuildthatapp.com/travel_discovery/category?name=art") else { return }
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            DispatchQueue.main.asyncAfter(deadline: .now()+1) {
+                guard let data = data else { return }
+                do {
+                    self.places = try JSONDecoder().decode([Place].self, from: data)
+                } catch let error {
+                    print("Failed to decode JSON:", error)
+                    self.errorMessage = error.localizedDescription
+                }
+                self.isLoading = false
+            }
+        
+        }.resume()
+        
+        
         // network code will happen here, fake net work code
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            self.isLoading = false
-            self.places = [1,2,3,4]
-        })
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+//            self.isLoading = false
+//            self.places = [1,2,3,4]
+//        })
     }
 }
 
@@ -92,20 +114,24 @@ struct CategoryDetailsView: View {
             .background(Color.black)
             .cornerRadius(8)
         } else {
-            ScrollView {
-                ForEach(0..<vm.places.count) { index in
-                    VStack(alignment: .leading, spacing: 0) {
-                        Image("art1")
-                            .resizable()
-                            .scaledToFill()
-                        Text("Demo")
-                            .font(.system(size: 12, weight: .semibold))
+            ZStack {
+                Text(vm.errorMessage)
+                ScrollView {
+                    ForEach(0..<vm.places.count) { index in
+                        VStack(alignment: .leading, spacing: 0) {
+                            Image("art1")
+                                .resizable()
+                                .scaledToFill()
+                            Text(vm.places[index].name)
+                                .font(.system(size: 12, weight: .semibold))
+                                .padding()
+                                
+                        }.asTile()
                             .padding()
-                            
-                    }.asTile()
-                        .padding()
+                    }
                 }
             }
+            
             .navigationTitle("Category")
             .navigationBarTitleDisplayMode(.inline)
         }
