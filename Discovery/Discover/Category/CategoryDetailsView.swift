@@ -11,7 +11,13 @@ import SDWebImageSwiftUI
 
 struct CategoryDetailsView: View {
     
-    @ObservedObject var vm = CategoryDetailsViewModel()
+    private let name: String
+    @ObservedObject private var vm: CategoryDetailsViewModel
+    
+    init(name: String) {
+        self.name = name
+        vm = .init(name: name)
+    }
     
     var body: some View {
         if vm.isLoading {
@@ -26,7 +32,15 @@ struct CategoryDetailsView: View {
             .cornerRadius(8)
         } else {
             ZStack {
-                Text(vm.errorMessage)
+                if !vm.errorMessage.isEmpty {
+                    VStack {
+                    Image(systemName: "xmark.octagon.fill")
+                            .font(.system(size: 64, weight: .semibold))
+                            .foregroundColor(.red)
+                        Text(vm.errorMessage)
+                    }
+                }
+                
                 ScrollView {
                     ForEach(0..<vm.places.count) { index in
                         VStack(alignment: .leading, spacing: 0) {
@@ -46,7 +60,7 @@ struct CategoryDetailsView: View {
                 }
             }
             
-            .navigationTitle("Category")
+            .navigationTitle(name)
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -55,6 +69,6 @@ struct CategoryDetailsView: View {
 
 struct CategoryDetailsView_Previews: PreviewProvider {
     static var previews: some View {
-        CategoryDetailsView()
+        CategoryDetailsView(name: "Art")
     }
 }
