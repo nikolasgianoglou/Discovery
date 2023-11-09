@@ -25,7 +25,10 @@ struct DiscoveryCategoriesView: View {
             HStack(alignment: .top, spacing: 14) {
                 ForEach(0..<categories.count) { index in
                     NavigationLink {
-                        CategoryDetailsView(name: categories[index].name)
+                        NavigationLazyView(
+                            CategoryDetailsView(name: categories[index].name)
+                        )
+                        
                     } label: {
                         VStack(spacing: 8) {
                             //                        Spacer()
